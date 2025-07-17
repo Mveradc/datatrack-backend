@@ -1,0 +1,37 @@
+services:
+  app:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "5000:5000"
+    container_name: fastapi_datatrack
+    depends_on:
+      - mongo
+      - postgres
+    env_file:
+      - .env
+
+  postgres:
+    image: postgres:14
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    container_name: postgres_datatrack
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  mongo:
+    image: mongo:6
+    env_file:
+      - .env
+    volumes:
+      - mongo_data:/data/db
+    container_name: mongo_datatrack
+volumes:
+  postgres_data:
+  mongo_data:
