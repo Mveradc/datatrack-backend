@@ -1,4 +1,4 @@
-import mongoengine
+import mongoengine as me
 from sqlalchemy import create_engine
 from app.core.config import settings
 from sqlalchemy.orm import sessionmaker
@@ -20,8 +20,12 @@ def get_psql():
         db.close()
 
 def connect_mongo():
-    mongo_uri = f"mongodb://{settings.MONGO_HOST}:{settings.MONGO_PORT}/{settings.MONGO_DB}"
-    mongoengine.connect(host=mongo_uri)
+    me.connect(
+    db=settings.MONGO_DB,
+    host=settings.MONGO_HOST,
+    port=settings.MONGO_PORT,
+    alias="default"  # por si usas múltiples conexiones
+)
     print("[MongoDB] Connected.")
 
 def connect_postgres():
