@@ -17,7 +17,6 @@ def register(user: UserCreate, db: Session = Depends(get_psql)):
         raise HTTPException(status_code=400, detail="Email already registered")
     
     new_user = User(
-        id=str(uuid.uuid4()),
         username=user.username,
         email=user.email,
         password=hash_password(user.password)
@@ -33,8 +32,8 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     user = db.query(User).filter(User.email == form_data.username).first()
     if not user or not verify_password(form_data.password, user.password):
         raise HTTPException(status_code=400, detail="Invalid credentials")
-    
-    access_token = create_access_token(data={"sub": user.id})
+
+    access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.get("/me", response_model=UserOut)

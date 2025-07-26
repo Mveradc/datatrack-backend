@@ -36,8 +36,9 @@ config.set_main_option("sqlalchemy.url", DATABASE_URL)
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
-from models.user import Base
-target_metadata = Base.metadata
+# Importa todos los modelos para que SQLAlchemy registre todas las tablas
+import models  # noqa: F401
+target_metadata = models.Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
