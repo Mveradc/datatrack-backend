@@ -8,8 +8,8 @@ from app.schemas.movement import MovementCreate, MovementOut, Headers
 from app.core.database import get_psql
 from app.core.auth import get_current_user
 import uuid
-import csv
-from app.utils.csv_parser import parse_csv_with_header_detection
+from app.utils.movements import group_movements, parse_csv_with_header_detection
+from app.models.filter import Filter
 
 router = APIRouter(prefix="/movements", tags=["Movements"])
 
@@ -81,7 +81,7 @@ async def create_movement_csv(
     db.commit()
     return {"detail": "Movements created successfully"}
 
-@router.put("/{movement_id}")
+@router.put("/")
 def update_movement(
     movement_id: list[uuid.UUID],
     movement: MovementCreate,
@@ -96,12 +96,13 @@ def update_movement(
         existing_movement.concept = movement.concept
         existing_movement.amount = movement.amount
         existing_movement.date = movement.date
-    existing_movement.agg_concept = movement.agg_concept
-    existing_movement.extraordinary = movement.extraordinary
-    existing_movement.balance = movement.balance
+        existing_movement.agg_concept = movement.agg_concept
+        existing_movement.extraordinary = movement.extraordinary
+        existing_movement.balance = movement.balance
     
     db.commit()
-    db.refresh(existing_movement)
+    for existing_movement in existing_movements:
+        db.refresh(existing_movement)
     return {"detail": "Movements updated successfully", "movements": existing_movements}
 
 @router.delete("/clear-all")
@@ -132,3 +133,17 @@ def delete_movement(
     db.delete(movement)
     db.commit()
     return movement
+
+@router.post("/group", response_model=list[MovementOut])
+def apply_group_filters(
+    db: Session = Depends(get_psql),
+    current_user: User = Depends(get_current_user)
+):
+    movements = db.query(Movement).filter(Movement.user_id == current_user.id)
+    filters = Filter.objects(user_id=str(current_user.id)).first()
+    movements = group_movements(movements, filters)
+
+    db.commit()
+    db.refresh(movements)
+
+    return movements

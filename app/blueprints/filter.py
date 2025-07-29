@@ -11,7 +11,7 @@ def get_filters(current_user: UserOut = Depends(get_current_user)):
     """
     Retrieve filters for the current user.
     """
-    user_filters = Filter.objects(user_id=current_user.id).first()
+    user_filters = Filter.objects(user_id=str(current_user.id)).first()
     if not user_filters:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Filters not found")
     
@@ -22,12 +22,12 @@ def create_filter(filter_data: FilterCreate, current_user: UserOut = Depends(get
     """
     Create a new filter for the current user.
     """
-    existing_filter = Filter.objects(user_id=current_user.id).first()
+    existing_filter = Filter.objects(user_id=str(current_user.id)).first()
     if existing_filter:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Filter already exists for this user")
     
     new_filter = Filter(
-        user_id=current_user.id,
+        user_id=str(current_user.id),
         filters=filter_data.filters
     )
     new_filter.save()
@@ -39,7 +39,7 @@ def update_filter(filter_data: FilterCreate, current_user: UserOut = Depends(get
     """
     Update the filter for the current user.
     """
-    existing_filter = Filter.objects(user_id=current_user.id).first()
+    existing_filter = Filter.objects(user_id=str(current_user.id)).first()
     if not existing_filter:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Filter not found")
     
@@ -53,7 +53,7 @@ def delete_filter(current_user: UserOut = Depends(get_current_user)):
     """
     Delete the filter for the current user.
     """
-    existing_filter = Filter.objects(user_id=current_user.id).first()
+    existing_filter = Filter.objects(user_id=str(current_user.id)).first()
     if not existing_filter:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Filter not found")
     

@@ -51,8 +51,16 @@ def parse_csv_with_header_detection(
 
     return df
 
-def apply_filters(concept, filter):
-    for group, lista in filter.items():
-        if any(sub in concept.lower() for sub in lista):
-            return group
-    return None
+def group_movements(movements, filter):
+    
+    def apply_filters(concept, filter):
+        for group, lista in filter.items():
+            if any(sub in concept.lower() for sub in lista):
+                return group
+        return None
+    
+    # Convert queryset to list of dicts if necessary
+    df = pd.DataFrame([m.__dict__ for m in movements.all()])
+    df["agg_concept"] = df["concept"].apply(lambda x: apply_filters(x, filter.filters))
+
+    return df[["id", "amount", "balance", "extraordinary", "user_id", "concept", "date", "agg_concept"]].to_dict(orient='records')
